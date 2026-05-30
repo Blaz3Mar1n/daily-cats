@@ -9,11 +9,9 @@ let db;
 export async function initDb() {
   const SQL = await initSqlJs();
 
-  // Ensure data directory exists
   const dir = path.dirname(DB_PATH);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
-  // Load existing DB from disk, or create fresh
   if (fs.existsSync(DB_PATH)) {
     const fileBuffer = fs.readFileSync(DB_PATH);
     db = new SQL.Database(fileBuffer);
@@ -61,10 +59,21 @@ function createSchema() {
     )
   `);
 
+  db.run(`
+    CREATE TABLE IF NOT EXISTS game_scores (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      username     TEXT NOT NULL,
+      game         TEXT NOT NULL,
+      correct      INTEGER DEFAULT 0,
+      wrong        INTEGER DEFAULT 0,
+      best_streak  INTEGER DEFAULT 0,
+      updated_at   TEXT DEFAULT (datetime('now'))
+    )
+  `);
+
   console.log('✅ Schema ready');
 }
 
-// Save DB to disk after every write
 export function save() {
   const data = db.export();
   fs.writeFileSync(DB_PATH, Buffer.from(data));
@@ -75,19 +84,15 @@ export function getDb() {
   return db;
 }
 
-// Helper: run a query and return rows as plain objects
 export function query(sql, params = []) {
   const stmt = db.prepare(sql);
   stmt.bind(params);
   const rows = [];
-  while (stmt.step()) {
-    rows.push(stmt.getAsObject());
-  }
+  while (stmt.step()) rows.push(stmt.getAsObject());
   stmt.free();
   return rows;
 }
 
-// Helper: run an INSERT/UPDATE/DELETE
 export function run(sql, params = []) {
   db.run(sql, params);
   save();

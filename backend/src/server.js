@@ -5,6 +5,7 @@ import { initDb } from './db.js';
 import { catsRouter } from './routes/cats.js';
 import { eloRouter } from './routes/elo.js';
 import { usersRouter } from './routes/users.js';
+import { scoresRouter } from './routes/scores.js';
 import { restoreFromGitHub } from './autobackfill.js';
 
 const app = express();
@@ -18,9 +19,10 @@ app.use(cors({
 }));
 app.use(express.json());
 
-app.use('/cats', catsRouter);
-app.use('/elo', eloRouter);
-app.use('/users', usersRouter);
+app.use('/cats',   catsRouter);
+app.use('/elo',    eloRouter);
+app.use('/users',  usersRouter);
+app.use('/scores', scoresRouter);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Daily Cats backend is running.' });
@@ -31,7 +33,6 @@ app.use((req, res) => {
 });
 
 initDb().then(async () => {
-  // Restore from GitHub backup if database is empty
   await restoreFromGitHub();
 
   app.listen(PORT, () => {
@@ -49,6 +50,8 @@ initDb().then(async () => {
     console.log(`   POST /elo/vote`);
     console.log(`   GET  /users`);
     console.log(`   GET  /users/leaderboard`);
+    console.log(`   GET  /scores/leaderboard`);
+    console.log(`   POST /scores`);
   });
 }).catch(err => {
   console.error('❌ Failed to initialise database:', err);

@@ -17,17 +17,18 @@ async function post(path, body) {
 }
 
 export const api = {
-  // Cats
   getCats:        (search = '', offset = 0, limit = 50) =>
     get(`/cats?search=${encodeURIComponent(search)}&offset=${offset}&limit=${limit}`),
   getCat:         (id) => get(`/cats/${id}`),
-  getRandomCat:   ()  => get('/cats/random'),
+  getRandomCat:   ()   => get('/cats/random'),
 
-  // ELO
-  getElo:         ()  => get('/elo'),
+  getElo:         ()   => get('/elo'),
   vote:           (winner_id, loser_id) => post('/elo/vote', { winner_id, loser_id }),
 
-  // Users
-  getUsers:       ()  => get('/users'),
-  getLeaderboard: ()  => get('/users/leaderboard'),
+  getUsers:       ()   => get('/users'),
+  getLeaderboard: ()   => get('/users/leaderboard'),
+
+  getScores:      (game = 'guess') => get(`/scores/leaderboard?game=${game}`),
+  submitScore:    (username, game, correct, wrong, best_streak) =>
+    post('/scores', { username, game, correct, wrong, best_streak }),
 };

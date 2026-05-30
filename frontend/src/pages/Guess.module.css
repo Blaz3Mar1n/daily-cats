@@ -222,3 +222,14 @@
   flex-shrink: 0;
 }
 .lbNote { text-align: center; font-size: 0.72rem; color: var(--text-light); margin-top: 1rem; }
+
+.lbRowMe { border-color: var(--pink) !important; background: #fff8fa; }
+.lbNameRow { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 3px; }
+.lbYou {
+  font-size: 0.65rem;
+  background: var(--pink);
+  color: white;
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-weight: 700;
+}

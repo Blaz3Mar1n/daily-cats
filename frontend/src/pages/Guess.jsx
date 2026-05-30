@@ -1,11 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../api';
 import CatMedia from '../components/CatMedia';
 import styles from './Guess.module.css';
 
 const COLORS = ['#E07A8F','#9B7FE8','#F4A261','#52B788','#378ADD','#E24B4A','#BA7517'];
 const MEDALS = ['🥇','🥈','🥉'];
-const LS_KEY = 'guess_leaderboard';
 
 function Avatar({ username, id, avatarUrl }) {
   const [imgError, setImgError] = useState(false);
@@ -22,31 +21,6 @@ function StreakBadge({ streak }) {
   return <div className={styles.streak}>{fire} {streak} in a row!</div>;
 }
 
-function loadLeaderboard() {
-  try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; }
-  catch { return []; }
-}
-
-function saveLeaderboard(lb) {
-  localStorage.setItem(LS_KEY, JSON.stringify(lb));
-}
-
-function updateLeaderboard(username, avatarUrl, correct, wrong, bestStreak) {
-  const lb = loadLeaderboard();
-  const existing = lb.find(e => e.username === username);
-  if (existing) {
-    existing.correct    += correct;
-    existing.wrong      += wrong;
-    existing.bestStreak  = Math.max(existing.bestStreak, bestStreak);
-    existing.avatarUrl   = avatarUrl;
-  } else {
-    lb.push({ username, avatarUrl, correct, wrong, bestStreak });
-  }
-  lb.sort((a, b) => b.correct - a.correct);
-  saveLeaderboard(lb);
-  return lb;
-}
-
 export default function Guess() {
   const [cat,        setCat]        = useState(null);
   const [users,      setUsers]      = useState([]);
@@ -59,14 +33,40 @@ export default function Guess() {
   const [bestStreak, setBestStreak] = useState(0);
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState(null);
-  const [tab,        setTab]        = useState('game'); // 'game' | 'leaderboard'
+  const [tab,        setTab]        = useState('game');
   const [playerName, setPlayerName] = useState(() => localStorage.getItem('guess_player') || '');
   const [nameSet,    setNameSet]    = useState(() => !!localStorage.getItem('guess_player'));
-  const [lb,         setLb]         = useState(loadLeaderboard);
+  const [lb,         setLb]         = useState([]);
+  const [lbLoading,  setLbLoading]  = useState(false);
+
+  // Track pending score to submit
+  const pendingScore = useRef({ correct: 0, wrong: 0, bestStreak: 0 });
 
   useEffect(() => {
     api.getUsers().then(setUsers).catch(() => setError('Could not load users.'));
   }, []);
+
+  // Load global leaderboard when switching to that tab
+  useEffect(() => {
+    if (tab === 'leaderboard') {
+      setLbLoading(true);
+      api.getScores('guess')
+        .then(setLb)
+        .catch(() => setLb([]))
+        .finally(() => setLbLoading(false));
+    }
+  }, [tab]);
+
+  // Submit score to backend when tab changes away from game or on unmount
+  useEffect(() => {
+    return () => {
+      const p = pendingScore.current;
+      if (nameSet && playerName && (p.correct > 0 || p.wrong > 0)) {
+        api.submitScore(playerName, 'guess', p.correct, p.wrong, p.bestStreak)
+          .catch(console.error);
+      }
+    };
+  }, [nameSet, playerName]);
 
   const loadRound = useCallback(async () => {
     if (!users.length) return;
@@ -96,33 +96,36 @@ export default function Guess() {
     if (answered) return;
     setAnswered(true);
     setChosen(user.discord_id);
-    let newStreak = streak;
-    let newBest = bestStreak;
-    let newCorrect = correct;
-    let newWrong = wrong;
 
-    if (user.discord_id === cat.sender_id) {
-      newCorrect = correct + 1;
+    let newStreak, newBest, isCorrect = user.discord_id === cat.sender_id;
+
+    if (isCorrect) {
+      const nc = correct + 1;
       newStreak = streak + 1;
       newBest = Math.max(bestStreak, newStreak);
-      setCorrect(newCorrect);
+      setCorrect(nc);
       setStreak(newStreak);
       setBestStreak(newBest);
+      pendingScore.current.correct += 1;
+      pendingScore.current.bestStreak = Math.max(pendingScore.current.bestStreak, newStreak);
     } else {
-      newWrong = wrong + 1;
-      newStreak = 0;
-      setWrong(newWrong);
+      setWrong(w => w + 1);
       setStreak(0);
+      newStreak = 0;
+      newBest = bestStreak;
+      pendingScore.current.wrong += 1;
     }
 
-    // Save to leaderboard if player has a name
-    if (nameSet && playerName) {
-      const updated = updateLeaderboard(playerName, null, 
-        user.discord_id === cat.sender_id ? 1 : 0,
-        user.discord_id === cat.sender_id ? 0 : 1,
-        newBest
-      );
-      setLb(updated);
+    // Submit to backend every 5 answers
+    const total = pendingScore.current.correct + pendingScore.current.wrong;
+    if (nameSet && playerName && total % 5 === 0) {
+      api.submitScore(playerName, 'guess',
+        pendingScore.current.correct,
+        pendingScore.current.wrong,
+        pendingScore.current.bestStreak
+      ).then(() => {
+        pendingScore.current = { correct: 0, wrong: 0, bestStreak: 0 };
+      }).catch(console.error);
     }
   }
 
@@ -137,7 +140,6 @@ export default function Guess() {
 
   return (
     <div className={styles.wrap}>
-      {/* Tab switcher */}
       <div className={styles.tabs}>
         <button className={`${styles.tab} ${tab === 'game' ? styles.tabActive : ''}`} onClick={() => setTab('game')}>🕵️ Game</button>
         <button className={`${styles.tab} ${tab === 'leaderboard' ? styles.tabActive : ''}`} onClick={() => setTab('leaderboard')}>🏆 Leaderboard</button>
@@ -145,17 +147,11 @@ export default function Guess() {
 
       {tab === 'game' && (
         <>
-          {/* Player name prompt */}
           {!nameSet && (
             <form className={styles.nameForm} onSubmit={handleSetName}>
-              <div className={styles.namePrompt}>Enter your name to appear on the leaderboard</div>
+              <div className={styles.namePrompt}>Enter your name to appear on the global leaderboard</div>
               <div className={styles.nameRow}>
-                <input
-                  className={styles.nameInput}
-                  placeholder="Your name..."
-                  value={playerName}
-                  onChange={e => setPlayerName(e.target.value)}
-                />
+                <input className={styles.nameInput} placeholder="Your name..." value={playerName} onChange={e => setPlayerName(e.target.value)} />
                 <button className={styles.nameBtn} type="submit">Let's go!</button>
               </div>
             </form>
@@ -215,28 +211,33 @@ export default function Guess() {
 
       {tab === 'leaderboard' && (
         <div className={styles.lbWrap}>
-          <div className={styles.lbTitle}>Who Knows Their Crew?</div>
-          {lb.length === 0 ? (
-            <div className="error-msg">No scores yet — play the game first!</div>
+          <div className={styles.lbTitle}>Global Leaderboard</div>
+          {lbLoading ? (
+            <div className="error-msg">Loading scores...</div>
+          ) : lb.length === 0 ? (
+            <div className="error-msg">No scores yet — be the first to play!</div>
           ) : (
             <div className={styles.lbList}>
               {lb.map((entry, i) => {
                 const total = entry.correct + entry.wrong;
                 const pct = total > 0 ? Math.round((entry.correct / total) * 100) : 0;
                 return (
-                  <div key={entry.username} className={styles.lbRow}>
+                  <div key={entry.username} className={`${styles.lbRow} ${entry.username === playerName ? styles.lbRowMe : ''}`}>
                     <div className={styles.lbPos}>{MEDALS[i] || `${i + 1}`}</div>
                     <div className={styles.lbAvatar} style={{ background: COLORS[i % COLORS.length] }}>
                       {entry.username.slice(0, 2).toUpperCase()}
                     </div>
                     <div className={styles.lbInfo}>
-                      <div className={styles.lbName}>{entry.username}</div>
+                      <div className={styles.lbNameRow}>
+                        <span className={styles.lbName}>{entry.username}</span>
+                        {entry.username === playerName && <span className={styles.lbYou}>you</span>}
+                      </div>
                       <div className={styles.lbBar}>
                         <div className={styles.lbBarFill} style={{ width: `${pct}%` }} />
                       </div>
                       <div className={styles.lbStats}>
-                        {entry.correct} correct · {entry.wrong} wrong · {pct}% accuracy
-                        {entry.bestStreak >= 2 && ` · 🔥 best streak: ${entry.bestStreak}`}
+                        {entry.correct} correct · {pct}% accuracy
+                        {entry.best_streak >= 2 && ` · 🔥 ${entry.best_streak}`}
                       </div>
                     </div>
                     <div className={styles.lbScore}>{entry.correct}</div>
@@ -245,7 +246,7 @@ export default function Guess() {
               })}
             </div>
           )}
-          <div className={styles.lbNote}>Scores are saved in your browser</div>
+          <div className={styles.lbNote}>Scores sync every 5 answers · shared across all players</div>
         </div>
       )}
     </div>
