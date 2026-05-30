@@ -5,6 +5,7 @@ import { initDb } from './db.js';
 import { catsRouter } from './routes/cats.js';
 import { eloRouter } from './routes/elo.js';
 import { usersRouter } from './routes/users.js';
+import { restoreFromGitHub } from './autobackfill.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -29,7 +30,10 @@ app.use((req, res) => {
   res.status(404).json({ error: `Route ${req.method} ${req.path} not found` });
 });
 
-initDb().then(() => {
+initDb().then(async () => {
+  // Restore from GitHub backup if database is empty
+  await restoreFromGitHub();
+
   app.listen(PORT, () => {
     console.log(`✅ Backend running on http://localhost:${PORT}`);
     console.log(`   API_SECRET: ${process.env.API_SECRET ? '(set)' : '⚠️  NOT SET'}`);
