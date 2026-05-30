@@ -53,3 +53,15 @@ initDb().then(async () => {
   console.error('❌ Failed to initialise database:', err);
   process.exit(1);
 });
+
+// Debug endpoint — check env vars are set
+app.get('/admin/debug', (req, res) => {
+  const secret = req.headers['authorization']?.replace('Bearer ', '');
+  if (secret !== process.env.API_SECRET) return res.status(401).json({ error: 'Unauthorised' });
+  res.json({
+    GITHUB_TOKEN: process.env.GITHUB_TOKEN ? `set (${process.env.GITHUB_TOKEN.slice(0,8)}...)` : 'NOT SET',
+    GITHUB_REPO:  process.env.GITHUB_REPO  || 'NOT SET',
+    DB_PATH:      process.env.DB_PATH      || 'NOT SET',
+    API_SECRET:   process.env.API_SECRET   ? 'set' : 'NOT SET',
+  });
+});
