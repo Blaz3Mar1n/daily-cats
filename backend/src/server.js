@@ -8,6 +8,7 @@ import { usersRouter } from './routes/users.js';
 import { scoresRouter } from './routes/scores.js';
 import { restoreFromGitHub } from './autobackfill.js';
 import { backupToGitHub } from './backup.js';
+import fs from 'fs';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -47,7 +48,45 @@ app.get('/admin/debug', (req, res) => {
   });
 });
 
-// 404 must be last
+// Test GitHub API directly and return full response
+app.get('/admin/test-github', async (req, res) => {
+  const secret = req.headers['authorization']?.replace('Bearer ', '');
+  if (secret !== process.env.API_SECRET) return res.status(401).json({ error: 'Unauthorised' });
+
+  const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+  const GITHUB_REPO  = process.env.GITHUB_REPO;
+  const DB_PATH      = process.env.DB_PATH || './data/cats.db';
+
+  try {
+    // Test 1: Can we reach GitHub API?
+    const userRes = await fetch('https://api.github.com/user', {
+      headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' }
+    });
+    const userData = await userRes.json();
+
+    // Test 2: Can we read the repo?
+    const repoRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}`, {
+      headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' }
+    });
+    const repoData = await repoRes.json();
+
+    // Test 3: Does the db file exist?
+    const dbExists = fs.existsSync(DB_PATH);
+    const dbSize = dbExists ? fs.statSync(DB_PATH).size : 0;
+
+    res.json({
+      github_user: userData.login || userData.message,
+      github_user_status: userRes.status,
+      repo_name: repoData.name || repoData.message,
+      repo_status: repoRes.status,
+      db_exists: dbExists,
+      db_size_bytes: dbSize,
+    });
+  } catch (err) {
+    res.json({ error: err.message });
+  }
+});
+
 app.use((req, res) => {
   res.status(404).json({ error: `Route ${req.method} ${req.path} not found` });
 });
