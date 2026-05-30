@@ -233,3 +233,46 @@
   padding: 1px 7px;
   font-weight: 700;
 }
+
+.loginPrompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  background: var(--lavender);
+  border-radius: 14px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--lav-deep);
+  flex-wrap: wrap;
+  text-align: center;
+}
+
+.loginPromptBtn {
+  background: #5865F2;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.loginPromptBtn:hover { background: #4752C4; }
+
+.scoreChipName {
+  background: var(--mint);
+  border-radius: 999px;
+  padding: 0.3rem 0.9rem 0.3rem 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--mint-deep);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}

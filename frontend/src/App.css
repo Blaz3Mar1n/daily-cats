@@ -93,3 +93,32 @@
   transition: color 0.15s;
 }
 .logout-btn:hover { color: var(--pink); }
+
+.login-toast {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #3D2B2B;
+  color: white;
+  padding: 0.7rem 1.5rem;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  z-index: 9999;
+  animation: slideDown 0.3s ease;
+  font-family: 'Nunito', sans-serif;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.auth-loading {
+  width: 80px;
+  height: 32px;
+  border-radius: 999px;
+  background: var(--border);
+  animation: shimmer 1.4s infinite;
+}
