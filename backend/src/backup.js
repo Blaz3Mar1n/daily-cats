@@ -1,15 +1,21 @@
 import fs from 'fs';
 
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const GITHUB_REPO  = process.env.GITHUB_REPO;
-const BACKUP_PATH  = 'backup/cats.db';
-const DB_PATH      = process.env.DB_PATH || './data/cats.db';
+const BACKUP_PATH = 'backup/cats.db';
 
 export async function backupToGitHub() {
+  // Read env vars at call time, not module load time
+  const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+  const GITHUB_REPO  = process.env.GITHUB_REPO;
+  const DB_PATH      = process.env.DB_PATH || './data/cats.db';
+
   if (!GITHUB_TOKEN || !GITHUB_REPO) {
     console.log('⏭️  Backup skipped — GITHUB_TOKEN or GITHUB_REPO not set');
+    console.log('   GITHUB_TOKEN:', GITHUB_TOKEN ? '(set)' : 'MISSING');
+    console.log('   GITHUB_REPO:', GITHUB_REPO ? GITHUB_REPO : 'MISSING');
     return;
   }
+
+  console.log(`💾 Starting backup to ${GITHUB_REPO}...`);
 
   try {
     const content = fs.readFileSync(DB_PATH);
@@ -24,6 +30,9 @@ export async function backupToGitHub() {
     if (getRes.ok) {
       const data = await getRes.json();
       sha = data.sha;
+      console.log('📄 Existing backup found, will update');
+    } else {
+      console.log('📄 No existing backup, will create new');
     }
 
     const body = {
@@ -46,10 +55,10 @@ export async function backupToGitHub() {
     );
 
     if (putRes.ok) {
-      console.log('💾 Database backed up to GitHub');
+      console.log('✅ Database backed up to GitHub successfully!');
     } else {
       const err = await putRes.json();
-      console.error('❌ GitHub backup failed:', err.message);
+      console.error('❌ GitHub backup failed:', JSON.stringify(err));
     }
   } catch (err) {
     console.error('❌ GitHub backup error:', err.message);
