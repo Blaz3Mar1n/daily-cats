@@ -30,6 +30,23 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Daily Cats backend is running.' });
 });
 
+// Image proxy — forwards Discord CDN images to avoid CORS issues
+app.get('/proxy/avatar', async (req, res) => {
+  const { url } = req.query;
+  if (!url || !url.startsWith('https://cdn.discordapp.com/')) {
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
+  try {
+    const response = await fetch(url);
+    const buffer = await response.arrayBuffer();
+    res.set('Content-Type', response.headers.get('content-type') || 'image/png');
+    res.set('Cache-Control', 'public, max-age=86400');
+    res.send(Buffer.from(buffer));
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch image' });
+  }
+});
+
 app.post('/admin/backup', async (req, res) => {
   const secret = req.headers['authorization']?.replace('Bearer ', '');
   if (secret !== process.env.API_SECRET) return res.status(401).json({ error: 'Unauthorised' });
@@ -67,9 +84,7 @@ app.get('/admin/test-github', async (req, res) => {
     const dbSize = dbExists ? fs.statSync(DB_PATH).size : 0;
     res.json({
       github_user: userData.login || userData.message,
-      github_user_status: userRes.status,
       repo_name: repoData.name || repoData.message,
-      repo_status: repoRes.status,
       db_exists: dbExists,
       db_size_bytes: dbSize,
     });
@@ -78,18 +93,16 @@ app.get('/admin/test-github', async (req, res) => {
   }
 });
 
+// 404 must be last
 app.use((req, res) => {
   res.status(404).json({ error: `Route ${req.method} ${req.path} not found` });
 });
 
-// Restore from GitHub BEFORE initializing the database connection
 async function restoreBeforeInit() {
   const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
   const GITHUB_REPO  = process.env.GITHUB_REPO;
   const DB_PATH      = process.env.DB_PATH || './data/cats.db';
-
   if (!GITHUB_TOKEN || !GITHUB_REPO) return;
-
   try {
     console.log('📥 Checking GitHub for backup...');
     const res = await fetch(
@@ -97,11 +110,9 @@ async function restoreBeforeInit() {
       { headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github.raw+json' } }
     );
     if (!res.ok) { console.log('⚠️  No backup found on GitHub'); return; }
-
     const buffer = Buffer.from(await res.arrayBuffer());
     const currentSize = fs.existsSync(DB_PATH) ? fs.statSync(DB_PATH).size : 0;
     console.log(`📊 Current DB: ${currentSize} bytes, GitHub backup: ${buffer.length} bytes`);
-
     if (buffer.length > currentSize) {
       const dir = path.dirname(DB_PATH);
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -113,7 +124,6 @@ async function restoreBeforeInit() {
   }
 }
 
-// Restore FIRST, then init database with the restored file
 restoreBeforeInit().then(() => {
   return initDb();
 }).then(() => {
@@ -125,21 +135,4 @@ restoreBeforeInit().then(() => {
 }).catch(err => {
   console.error('❌ Failed to start:', err);
   process.exit(1);
-});
-
-// Image proxy — forwards Discord CDN images to avoid CORS issues
-app.get('/proxy/avatar', async (req, res) => {
-  const { url } = req.query;
-  if (!url || !url.startsWith('https://cdn.discordapp.com/')) {
-    return res.status(400).json({ error: 'Invalid URL' });
-  }
-  try {
-    const response = await fetch(url);
-    const buffer = await response.arrayBuffer();
-    res.set('Content-Type', response.headers.get('content-type') || 'image/png');
-    res.set('Cache-Control', 'public, max-age=86400');
-    res.send(Buffer.from(buffer));
-  } catch {
-    res.status(500).json({ error: 'Failed to fetch image' });
-  }
 });
