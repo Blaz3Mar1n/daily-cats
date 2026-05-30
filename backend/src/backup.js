@@ -1,6 +1,3 @@
-// Saves the current database to GitHub as backup/cats.db
-// Called after every new cat is added.
-
 import fs from 'fs';
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
@@ -8,22 +5,17 @@ const GITHUB_REPO  = process.env.GITHUB_REPO;
 const BACKUP_PATH  = 'backup/cats.db';
 const DB_PATH      = process.env.DB_PATH || './data/cats.db';
 
-let lastBackup = 0;
-const THROTTLE_MS = 60 * 1000; // max once per minute
-
 export async function backupToGitHub() {
-  if (!GITHUB_TOKEN || !GITHUB_REPO) return;
-
-  // Throttle — don't backup more than once per minute
-  const now = Date.now();
-  if (now - lastBackup < THROTTLE_MS) return;
-  lastBackup = now;
+  if (!GITHUB_TOKEN || !GITHUB_REPO) {
+    console.log('⏭️  Backup skipped — GITHUB_TOKEN or GITHUB_REPO not set');
+    return;
+  }
 
   try {
     const content = fs.readFileSync(DB_PATH);
     const base64  = content.toString('base64');
 
-    // Get current file SHA (needed to update existing file)
+    // Get current file SHA if it exists
     let sha = null;
     const getRes = await fetch(
       `https://api.github.com/repos/${GITHUB_REPO}/contents/${BACKUP_PATH}`,
@@ -34,7 +26,6 @@ export async function backupToGitHub() {
       sha = data.sha;
     }
 
-    // Push updated file
     const body = {
       message: `backup: update cats.db`,
       content: base64,

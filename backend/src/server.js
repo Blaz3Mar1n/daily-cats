@@ -7,6 +7,7 @@ import { eloRouter } from './routes/elo.js';
 import { usersRouter } from './routes/users.js';
 import { scoresRouter } from './routes/scores.js';
 import { restoreFromGitHub } from './autobackfill.js';
+import { backupToGitHub } from './backup.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -28,6 +29,14 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Daily Cats backend is running.' });
 });
 
+// Trigger a manual backup — used after initial backfill
+app.post('/admin/backup', async (req, res) => {
+  const secret = req.headers['authorization']?.replace('Bearer ', '');
+  if (secret !== process.env.API_SECRET) return res.status(401).json({ error: 'Unauthorised' });
+  await backupToGitHub();
+  res.json({ ok: true, message: 'Backup triggered' });
+});
+
 app.use((req, res) => {
   res.status(404).json({ error: `Route ${req.method} ${req.path} not found` });
 });
@@ -39,19 +48,6 @@ initDb().then(async () => {
     console.log(`✅ Backend running on http://localhost:${PORT}`);
     console.log(`   API_SECRET: ${process.env.API_SECRET ? '(set)' : '⚠️  NOT SET'}`);
     console.log(`   DB_PATH:    ${process.env.DB_PATH || './data/cats.db'}`);
-    console.log('');
-    console.log('📡 Endpoints:');
-    console.log(`   GET  /health`);
-    console.log(`   GET  /cats`);
-    console.log(`   GET  /cats/random`);
-    console.log(`   GET  /cats/:id`);
-    console.log(`   POST /cats          (auth required)`);
-    console.log(`   GET  /elo`);
-    console.log(`   POST /elo/vote`);
-    console.log(`   GET  /users`);
-    console.log(`   GET  /users/leaderboard`);
-    console.log(`   GET  /scores/leaderboard`);
-    console.log(`   POST /scores`);
   });
 }).catch(err => {
   console.error('❌ Failed to initialise database:', err);
