@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import session from 'express-session';
+import passport from 'passport';
 import fs from 'fs';
 import path from 'path';
 import { initDb } from './db.js';
@@ -8,19 +10,38 @@ import { catsRouter } from './routes/cats.js';
 import { eloRouter } from './routes/elo.js';
 import { usersRouter } from './routes/users.js';
 import { scoresRouter } from './routes/scores.js';
+import { authRouter } from './routes/auth.js';
 import { backupToGitHub } from './backup.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 app.use(cors({
   origin: [
     'http://localhost:5173',
     'https://daily-cats-gamma.vercel.app',
-  ]
+  ],
+  credentials: true,
 }));
 app.use(express.json());
 
+// Session middleware
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'cats-session-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  }
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use('/auth',   authRouter);
 app.use('/cats',   catsRouter);
 app.use('/elo',    eloRouter);
 app.use('/users',  usersRouter);
@@ -30,7 +51,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Daily Cats backend is running.' });
 });
 
-// Image proxy — forwards Discord CDN images to avoid CORS issues
+// Image proxy
 app.get('/proxy/avatar', async (req, res) => {
   const { url } = req.query;
   if (!url || !url.startsWith('https://cdn.discordapp.com/')) {
@@ -65,35 +86,6 @@ app.get('/admin/debug', (req, res) => {
   });
 });
 
-app.get('/admin/test-github', async (req, res) => {
-  const secret = req.headers['authorization']?.replace('Bearer ', '');
-  if (secret !== process.env.API_SECRET) return res.status(401).json({ error: 'Unauthorised' });
-  const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-  const GITHUB_REPO  = process.env.GITHUB_REPO;
-  const DB_PATH      = process.env.DB_PATH || './data/cats.db';
-  try {
-    const userRes = await fetch('https://api.github.com/user', {
-      headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' }
-    });
-    const userData = await userRes.json();
-    const repoRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}`, {
-      headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' }
-    });
-    const repoData = await repoRes.json();
-    const dbExists = fs.existsSync(DB_PATH);
-    const dbSize = dbExists ? fs.statSync(DB_PATH).size : 0;
-    res.json({
-      github_user: userData.login || userData.message,
-      repo_name: repoData.name || repoData.message,
-      db_exists: dbExists,
-      db_size_bytes: dbSize,
-    });
-  } catch (err) {
-    res.json({ error: err.message });
-  }
-});
-
-// 404 must be last
 app.use((req, res) => {
   res.status(404).json({ error: `Route ${req.method} ${req.path} not found` });
 });

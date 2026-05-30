@@ -42,3 +42,54 @@
 }
 .nav-btn:hover  { border-color: #E07A8F; color: #E07A8F; }
 .nav-btn.active { background: #E07A8F; color: white; border-color: #E07A8F; }
+
+.header-auth {
+  margin-top: 0.8rem;
+  display: flex;
+  justify-content: center;
+}
+
+.login-btn {
+  background: #5865F2;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 0.5rem 1.2rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.15s;
+}
+.login-btn:hover { background: #4752C4; transform: scale(1.03); }
+
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem 0.3rem 0.4rem;
+  border: 1.5px solid var(--border);
+}
+
+.user-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-dark);
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  font-size: 0.75rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s;
+}
+.logout-btn:hover { color: var(--pink); }
