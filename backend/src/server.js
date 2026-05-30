@@ -1,14 +1,14 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import fs from 'fs';
+import path from 'path';
 import { initDb } from './db.js';
 import { catsRouter } from './routes/cats.js';
 import { eloRouter } from './routes/elo.js';
 import { usersRouter } from './routes/users.js';
 import { scoresRouter } from './routes/scores.js';
-import { restoreFromGitHub } from './autobackfill.js';
 import { backupToGitHub } from './backup.js';
-import fs from 'fs';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -48,32 +48,23 @@ app.get('/admin/debug', (req, res) => {
   });
 });
 
-// Test GitHub API directly and return full response
 app.get('/admin/test-github', async (req, res) => {
   const secret = req.headers['authorization']?.replace('Bearer ', '');
   if (secret !== process.env.API_SECRET) return res.status(401).json({ error: 'Unauthorised' });
-
   const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
   const GITHUB_REPO  = process.env.GITHUB_REPO;
   const DB_PATH      = process.env.DB_PATH || './data/cats.db';
-
   try {
-    // Test 1: Can we reach GitHub API?
     const userRes = await fetch('https://api.github.com/user', {
       headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' }
     });
     const userData = await userRes.json();
-
-    // Test 2: Can we read the repo?
     const repoRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}`, {
       headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' }
     });
     const repoData = await repoRes.json();
-
-    // Test 3: Does the db file exist?
     const dbExists = fs.existsSync(DB_PATH);
     const dbSize = dbExists ? fs.statSync(DB_PATH).size : 0;
-
     res.json({
       github_user: userData.login || userData.message,
       github_user_status: userRes.status,
@@ -91,14 +82,47 @@ app.use((req, res) => {
   res.status(404).json({ error: `Route ${req.method} ${req.path} not found` });
 });
 
-initDb().then(async () => {
-  await restoreFromGitHub();
+// Restore from GitHub BEFORE initializing the database connection
+async function restoreBeforeInit() {
+  const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+  const GITHUB_REPO  = process.env.GITHUB_REPO;
+  const DB_PATH      = process.env.DB_PATH || './data/cats.db';
+
+  if (!GITHUB_TOKEN || !GITHUB_REPO) return;
+
+  try {
+    console.log('📥 Checking GitHub for backup...');
+    const res = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/contents/backup/cats.db`,
+      { headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github.raw+json' } }
+    );
+    if (!res.ok) { console.log('⚠️  No backup found on GitHub'); return; }
+
+    const buffer = Buffer.from(await res.arrayBuffer());
+    const currentSize = fs.existsSync(DB_PATH) ? fs.statSync(DB_PATH).size : 0;
+    console.log(`📊 Current DB: ${currentSize} bytes, GitHub backup: ${buffer.length} bytes`);
+
+    if (buffer.length > currentSize) {
+      const dir = path.dirname(DB_PATH);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(DB_PATH, buffer);
+      console.log(`✅ Restored from GitHub backup (${buffer.length} bytes)`);
+    }
+  } catch (err) {
+    console.error('❌ Restore failed:', err.message);
+  }
+}
+
+// Restore FIRST, then init database with the restored file
+restoreBeforeInit().then(() => {
+  return initDb();
+}).then(() => {
   app.listen(PORT, () => {
     console.log(`✅ Backend running on http://localhost:${PORT}`);
     console.log(`   API_SECRET: ${process.env.API_SECRET ? '(set)' : '⚠️  NOT SET'}`);
     console.log(`   DB_PATH:    ${process.env.DB_PATH || './data/cats.db'}`);
   });
 }).catch(err => {
-  console.error('❌ Failed to initialise database:', err);
+  console.error('❌ Failed to start:', err);
   process.exit(1);
 });
