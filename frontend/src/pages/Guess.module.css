@@ -1,31 +1,91 @@
 .wrap { padding: 1.5rem; max-width: 500px; margin: 0 auto; }
 
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 1.2rem;
+}
+.tab {
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.45rem 1.2rem;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  background: white;
+  color: var(--text-mid);
+  transition: all 0.15s;
+}
+.tab:hover { border-color: var(--pink); color: var(--pink); }
+.tabActive { background: var(--pink) !important; color: white !important; border-color: var(--pink) !important; }
+
+/* Name form */
+.nameForm {
+  background: var(--lavender);
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+.namePrompt { font-size: 0.82rem; color: var(--lav-deep); font-weight: 700; margin-bottom: 0.6rem; }
+.nameRow { display: flex; gap: 0.5rem; }
+.nameInput {
+  flex: 1;
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--lav-deep);
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.88rem;
+  outline: none;
+  background: white;
+}
+.nameBtn {
+  background: var(--lav-deep);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-weight: 700;
+  font-size: 0.82rem;
+  transition: all 0.15s;
+}
+.nameBtn:hover { background: #8268d4; }
+
+/* Score row */
 .scoreRow {
   display: flex;
-  gap: 0.8rem;
+  gap: 0.5rem;
   justify-content: center;
   margin-bottom: 0.8rem;
   flex-wrap: wrap;
 }
-
 .scoreChip {
   background: var(--peach);
   border-radius: 999px;
-  padding: 0.3rem 1rem;
-  font-size: 0.85rem;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: var(--peach-deep);
 }
-
 .scoreChipBest {
   background: var(--lavender);
   border-radius: 999px;
-  padding: 0.3rem 1rem;
-  font-size: 0.85rem;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: var(--lav-deep);
 }
+.scoreChipName {
+  background: var(--mint);
+  border-radius: 999px;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--mint-deep);
+}
 
+/* Streak */
 .streak {
   text-align: center;
   font-family: 'Fredoka One', cursive;
@@ -34,12 +94,12 @@
   margin-bottom: 0.8rem;
   animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-
 @keyframes popIn {
   0%   { transform: scale(0.7); opacity: 0; }
   100% { transform: scale(1);   opacity: 1; }
 }
 
+/* Game card */
 .gameCard {
   background: white;
   border: 2px solid var(--border);
@@ -51,9 +111,7 @@
   align-items: center;
   gap: 0.6rem;
 }
-
 .loadingCat { color: var(--text-light); padding: 2rem; }
-
 .catImg {
   width: 180px; height: 180px;
   border-radius: 14px;
@@ -64,22 +122,13 @@
   justify-content: center;
   font-size: 4rem;
 }
-.catImg video,
-.catImg img { width: 100%; height: 100%; object-fit: cover; }
-
+.catImg video, .catImg img { width: 100%; height: 100%; object-fit: cover; }
 .catName  { font-family: 'Fredoka One', cursive; font-size: 1.4rem; color: var(--text-dark); }
 .catTitle { font-size: 0.82rem; color: var(--text-mid); font-style: italic; }
 .catDay   { font-size: 0.78rem; color: var(--text-light); font-weight: 700; }
-
 .question { font-size: 0.9rem; font-weight: 700; color: var(--text-mid); margin-top: 0.4rem; }
 
-.optionsGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.6rem;
-  width: 100%;
-}
-
+.optionsGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; width: 100%; }
 .optBtn {
   background: var(--cream);
   border: 2px solid var(--border);
@@ -110,13 +159,7 @@
   color: white;
   flex-shrink: 0;
 }
-
-.avatarImg {
-  width: 26px; height: 26px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-}
+.avatarImg { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
 
 .feedbackCorrect { font-weight: 700; font-size: 0.9rem; color: var(--mint-deep); }
 .feedbackWrong   { font-weight: 700; font-size: 0.9rem; color: #A32D2D; }
@@ -133,3 +176,49 @@
   margin-top: 0.4rem;
 }
 .nextBtn:hover { background: #cc6680; transform: scale(1.03); }
+
+/* Leaderboard */
+.lbWrap { padding: 0.5rem 0; }
+.lbTitle {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.4rem;
+  color: var(--text-dark);
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.lbList { display: flex; flex-direction: column; gap: 0.6rem; }
+.lbRow {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.7rem 0.9rem;
+  background: white;
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  transition: border-color 0.15s;
+}
+.lbRow:hover { border-color: var(--pink-mid); }
+.lbPos { font-size: 1.2rem; width: 26px; text-align: center; flex-shrink: 0; }
+.lbAvatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: white;
+  flex-shrink: 0;
+}
+.lbInfo { flex: 1; min-width: 0; }
+.lbName { font-weight: 700; font-size: 0.9rem; margin-bottom: 3px; }
+.lbBar { height: 5px; background: var(--pink-light); border-radius: 999px; margin-bottom: 3px; overflow: hidden; }
+.lbBarFill { height: 100%; background: var(--pink); border-radius: 999px; transition: width 0.4s; }
+.lbStats { font-size: 0.7rem; color: var(--text-light); font-weight: 600; }
+.lbScore {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.3rem;
+  color: var(--pink);
+  flex-shrink: 0;
+}
+.lbNote { text-align: center; font-size: 0.72rem; color: var(--text-light); margin-top: 1rem; }
