@@ -1,0 +1,11 @@
+{
+  "name": "daily-cats",
+  "version": "1.0.0",
+  "description": "Monorepo for Daily Cats website, backend, and Discord bot",
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:bot": "cd bot && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "install:all": "cd bot && npm install && cd ../backend && npm install && cd ../frontend && npm install"
+  }
+}

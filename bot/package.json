@@ -1,0 +1,17 @@
+{
+  "name": "daily-cats-bot",
+  "version": "1.0.0",
+  "description": "Discord bot that syncs daily cat posts to the backend",
+  "main": "src/bot.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/bot.js",
+    "dev": "node --watch src/bot.js",
+    "backfill": "node src/backfill.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5",
+    "node-fetch": "^3.3.2"
+  }
+}

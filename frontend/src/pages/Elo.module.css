@@ -1,0 +1,113 @@
+.wrap { padding: 1.5rem; max-width: 700px; margin: 0 auto; text-align: center; }
+
+.arenaTitle { font-family: 'Fredoka One', cursive; font-size: 1.8rem; color: var(--text-dark); }
+.arenaSubtitle { font-size: 0.85rem; color: var(--text-mid); margin: 0.3rem 0 1.5rem; }
+
+.vsRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.eloCard {
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  padding: 1rem;
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.18s;
+  text-align: center;
+}
+.eloCard:hover:not(.disabled) {
+  border-color: var(--pink);
+  transform: scale(1.04);
+  box-shadow: var(--shadow);
+}
+.eloCard.disabled { opacity: 0.7; cursor: not-allowed; }
+
+.vsLabel { font-family: 'Fredoka One', cursive; font-size: 2rem; color: var(--pink); }
+
+.imgLarge {
+  width: 130px; height: 130px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--peach);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.imgSmall {
+  width: 44px; height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--peach);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eloName  { font-weight: 700; font-size: 0.95rem; color: var(--text-dark); }
+.eloTitle { font-size: 0.72rem; color: var(--text-light); }
+.eloScore { font-size: 0.78rem; color: var(--lav-deep); font-weight: 700; }
+
+.voteResult {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--mint-deep);
+  margin-bottom: 0.5rem;
+  min-height: 1.4em;
+}
+
+.skipBtn {
+  background: none;
+  border: 1.5px dashed var(--border);
+  border-radius: 999px;
+  padding: 0.4rem 1.2rem;
+  color: var(--text-light);
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.15s;
+  margin-bottom: 2rem;
+}
+.skipBtn:hover { color: var(--text-mid); border-color: var(--text-light); }
+
+.rankingsTitle {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.2rem;
+  color: var(--text-dark);
+  text-align: left;
+  margin-bottom: 0.8rem;
+}
+
+.rankList { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.rankRow {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.6rem 0.9rem;
+  background: white;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  text-align: left;
+  transition: border-color 0.15s;
+}
+.rankRow:hover { border-color: var(--pink-mid); }
+
+.rankPos { font-size: 1.1rem; width: 28px; text-align: center; flex-shrink: 0; }
+.rankInfo { flex: 1; min-width: 0; }
+.rankName { font-weight: 700; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rankTitle { font-size: 0.72rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rankRight { text-align: right; flex-shrink: 0; }
+.rankElo { font-size: 0.82rem; color: var(--lav-deep); font-weight: 700; }
+.rankRecord { font-size: 0.7rem; color: var(--text-light); }

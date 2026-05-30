@@ -1,0 +1,24 @@
+# Environment variables — NEVER commit these
+.env
+*.env
+
+# SQLite database — back this up manually, don't commit it
+*.db
+data/
+
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Build output
+dist/
+build/
+frontend/dist/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

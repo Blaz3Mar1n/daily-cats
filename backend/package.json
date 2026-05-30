@@ -1,0 +1,18 @@
+{
+  "name": "daily-cats-backend",
+  "version": "1.0.0",
+  "description": "REST API and database for the Daily Cats website",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "sql.js": "^1.12.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.3",
+    "multer": "^1.4.5-lts.1"
+  },
+  "type": "module"
+}

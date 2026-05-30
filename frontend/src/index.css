@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --pink:        #E07A8F;
+  --pink-light:  #FFD6E0;
+  --pink-mid:    #FFB3C6;
+  --peach:       #FFE5CC;
+  --peach-deep:  #F4A261;
+  --lavender:    #E8DEFF;
+  --lav-deep:    #9B7FE8;
+  --mint:        #D4F4E2;
+  --mint-deep:   #52B788;
+  --cream:       #FFF8F0;
+  --text-dark:   #3D2B2B;
+  --text-mid:    #7A5C5C;
+  --text-light:  #B89090;
+  --card-bg:     #FFFCFA;
+  --border:      rgba(180,120,120,0.15);
+  --radius:      16px;
+  --shadow:      0 4px 16px rgba(224,122,143,0.12);
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--cream);
+  color: var(--text-dark);
+  min-height: 100vh;
+}
+
+button { cursor: pointer; font-family: 'Nunito', sans-serif; }
+
+.skeleton {
+  background: linear-gradient(90deg, #f0e8e8 25%, #f8f0f0 50%, #f0e8e8 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 8px;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.error-msg {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-mid);
+  font-size: 0.9rem;
+}
