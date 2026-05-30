@@ -29,7 +29,6 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Daily Cats backend is running.' });
 });
 
-// Trigger a manual backup — used after initial backfill
 app.post('/admin/backup', async (req, res) => {
   const secret = req.headers['authorization']?.replace('Bearer ', '');
   if (secret !== process.env.API_SECRET) return res.status(401).json({ error: 'Unauthorised' });
@@ -37,24 +36,6 @@ app.post('/admin/backup', async (req, res) => {
   res.json({ ok: true, message: 'Backup triggered' });
 });
 
-app.use((req, res) => {
-  res.status(404).json({ error: `Route ${req.method} ${req.path} not found` });
-});
-
-initDb().then(async () => {
-  await restoreFromGitHub();
-
-  app.listen(PORT, () => {
-    console.log(`✅ Backend running on http://localhost:${PORT}`);
-    console.log(`   API_SECRET: ${process.env.API_SECRET ? '(set)' : '⚠️  NOT SET'}`);
-    console.log(`   DB_PATH:    ${process.env.DB_PATH || './data/cats.db'}`);
-  });
-}).catch(err => {
-  console.error('❌ Failed to initialise database:', err);
-  process.exit(1);
-});
-
-// Debug endpoint — check env vars are set
 app.get('/admin/debug', (req, res) => {
   const secret = req.headers['authorization']?.replace('Bearer ', '');
   if (secret !== process.env.API_SECRET) return res.status(401).json({ error: 'Unauthorised' });
@@ -64,4 +45,21 @@ app.get('/admin/debug', (req, res) => {
     DB_PATH:      process.env.DB_PATH      || 'NOT SET',
     API_SECRET:   process.env.API_SECRET   ? 'set' : 'NOT SET',
   });
+});
+
+// 404 must be last
+app.use((req, res) => {
+  res.status(404).json({ error: `Route ${req.method} ${req.path} not found` });
+});
+
+initDb().then(async () => {
+  await restoreFromGitHub();
+  app.listen(PORT, () => {
+    console.log(`✅ Backend running on http://localhost:${PORT}`);
+    console.log(`   API_SECRET: ${process.env.API_SECRET ? '(set)' : '⚠️  NOT SET'}`);
+    console.log(`   DB_PATH:    ${process.env.DB_PATH || './data/cats.db'}`);
+  });
+}).catch(err => {
+  console.error('❌ Failed to initialise database:', err);
+  process.exit(1);
 });
