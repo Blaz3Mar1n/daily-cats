@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../api';
+import DiscordAvatar from '../components/DiscordAvatar';
 import CatMedia from '../components/CatMedia';
 import styles from './Guess.module.css';
 
@@ -187,7 +188,7 @@ export default function Guess() {
                     else if (answered && isChosen) cls += ` ${styles.wrong}`;
                     return (
                       <button key={user.discord_id} className={cls} onClick={() => guess(user)} disabled={answered}>
-                        <Avatar username={user.username} id={user.discord_id} avatarUrl={user.avatar_url} />
+                        <DiscordAvatar username={user.username} id={user.discord_id} avatarUrl={user.avatar_url} size={26} />
                         {user.username}
                       </button>
                     );

@@ -126,3 +126,20 @@ restoreBeforeInit().then(() => {
   console.error('❌ Failed to start:', err);
   process.exit(1);
 });
+
+// Image proxy — forwards Discord CDN images to avoid CORS issues
+app.get('/proxy/avatar', async (req, res) => {
+  const { url } = req.query;
+  if (!url || !url.startsWith('https://cdn.discordapp.com/')) {
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
+  try {
+    const response = await fetch(url);
+    const buffer = await response.arrayBuffer();
+    res.set('Content-Type', response.headers.get('content-type') || 'image/png');
+    res.set('Cache-Control', 'public, max-age=86400');
+    res.send(Buffer.from(buffer));
+  } catch {
+    res.status(500).json({ error: 'Failed to fetch image' });
+  }
+});
