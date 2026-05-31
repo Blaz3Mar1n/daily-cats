@@ -16,6 +16,10 @@ import { backupToGitHub } from './backup.js';
 const app = express();
 const PORT = process.env.PORT || 3001;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const isProduction = !!process.env.RAILWAY_ENVIRONMENT;
+
+// Trust Railway's proxy
+app.set('trust proxy', 1);
 
 app.use(cors({
   origin: [
@@ -26,15 +30,15 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Session middleware
 app.use(session({
   secret: process.env.SESSION_SECRET || 'cats-session-secret',
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    httpOnly: true,
   }
 }));
 
@@ -48,10 +52,14 @@ app.use('/users',  usersRouter);
 app.use('/scores', scoresRouter);
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Daily Cats backend is running.' });
+  res.json({
+    status: 'ok',
+    message: 'Daily Cats backend is running.',
+    isProduction,
+    user: req.user?.username || null,
+  });
 });
 
-// Image proxy
 app.get('/proxy/avatar', async (req, res) => {
   const { url } = req.query;
   if (!url || !url.startsWith('https://cdn.discordapp.com/')) {
@@ -83,6 +91,7 @@ app.get('/admin/debug', (req, res) => {
     GITHUB_REPO:  process.env.GITHUB_REPO  || 'NOT SET',
     DB_PATH:      process.env.DB_PATH      || 'NOT SET',
     API_SECRET:   process.env.API_SECRET   ? 'set' : 'NOT SET',
+    RAILWAY_ENV:  process.env.RAILWAY_ENVIRONMENT || 'NOT SET',
   });
 });
 
@@ -123,6 +132,7 @@ restoreBeforeInit().then(() => {
     console.log(`✅ Backend running on http://localhost:${PORT}`);
     console.log(`   API_SECRET: ${process.env.API_SECRET ? '(set)' : '⚠️  NOT SET'}`);
     console.log(`   DB_PATH:    ${process.env.DB_PATH || './data/cats.db'}`);
+    console.log(`   Production: ${isProduction}`);
   });
 }).catch(err => {
   console.error('❌ Failed to start:', err);
