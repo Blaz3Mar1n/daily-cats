@@ -1,7 +1,7 @@
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 async function get(path) {
-  const res = await fetch(`${BASE}${path}`);
+  const res = await fetch(`${BASE}${path}`, { credentials: 'include' });
   if (!res.ok) throw new Error(`GET ${path} failed: ${res.status}`);
   return res.json();
 }
@@ -10,6 +10,7 @@ async function post(path, body) {
   const res = await fetch(`${BASE}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`POST ${path} failed: ${res.status}`);
@@ -29,6 +30,6 @@ export const api = {
   getLeaderboard: ()   => get('/users/leaderboard'),
 
   getScores:      (game = 'guess') => get(`/scores/leaderboard?game=${game}`),
-  submitScore:    (username, game, correct, wrong, best_streak) =>
-    post('/scores', { username, game, correct, wrong, best_streak }),
+  submitScore:    (username, discord_id, game, correct, wrong, best_streak) =>
+    post('/scores', { username, discord_id, game, correct, wrong, best_streak }),
 };

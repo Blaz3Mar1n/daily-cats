@@ -51,7 +51,7 @@ export default function Guess() {
     return () => {
       const p = pendingScore.current;
       if (user && (p.correct > 0 || p.wrong > 0)) {
-        api.submitScore(user.username, 'guess', p.correct, p.wrong, p.bestStreak)
+        api.submitScore(user.username, user.discord_id, 'guess', p.correct, p.wrong, p.bestStreak)
           .catch(console.error);
       }
     };
@@ -107,7 +107,7 @@ export default function Guess() {
     // Submit every 5 answers
     const total = pendingScore.current.correct + pendingScore.current.wrong;
     if (user && total % 5 === 0) {
-      api.submitScore(user.username, 'guess',
+      api.submitScore(user.username, user.discord_id, 'guess',
         pendingScore.current.correct,
         pendingScore.current.wrong,
         pendingScore.current.bestStreak
@@ -211,9 +211,7 @@ export default function Guess() {
                 return (
                   <div key={entry.username} className={`${styles.lbRow} ${isMe ? styles.lbRowMe : ''}`}>
                     <div className={styles.lbPos}>{MEDALS[i] || `${i + 1}`}</div>
-                    <div className={styles.lbAvatar} style={{ background: COLORS[i % COLORS.length] }}>
-                      {entry.username.slice(0, 2).toUpperCase()}
-                    </div>
+                    <DiscordAvatar avatarUrl={entry.avatar_url} username={entry.username} id={entry.discord_id} size={36} />
                     <div className={styles.lbInfo}>
                       <div className={styles.lbNameRow}>
                         <span className={styles.lbName}>{entry.username}</span>
