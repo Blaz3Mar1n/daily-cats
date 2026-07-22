@@ -84,9 +84,9 @@ client.once('ready', async () => {
         const next = allMessages[j];
         // Stop if we hit another cat post
         if (parseMessage(next.content)) break;
-        // Only look at messages from same author or close in time (within 5 minutes)
+        // Only look at messages from same author or close in time (within 50 minutes)
         const timeDiff = next.createdTimestamp - msg.createdTimestamp;
-        if (timeDiff > 5 * 60 * 1000) break;
+        if (timeDiff > 50 * 60 * 1000) break;
 
         const found = extractGifFromMessage(next);
         if (found) { gifUrl = found; break; }
