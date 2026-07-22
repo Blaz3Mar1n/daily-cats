@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
 const API_SECRET  = process.env.API_SECRET;
 
-const headers = {
+const headers = { 
   'Content-Type': 'application/json',
   'Authorization': `Bearer ${API_SECRET}`,
 };

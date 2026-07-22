@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { parseMessage } from './parser.js';
 import { postCat, patchCatGif } from './api.js';
+import { extractGifFromMessage } from './backfill.js';
 
 const CHANNEL_ID = process.env.CHANNEL_ID;
 
@@ -16,23 +17,6 @@ const client = new Client({
 // Track pending cat posts waiting for their GIF message
 // key: sender discord_id, value: { parsed, sender, avatarUrl, savedId, timestamp }
 const pendingCats = new Map();
-
-function extractGifFromMessage(msg) {
-  const attachment = msg.attachments.first();
-  if (attachment) return attachment.url;
-  for (const embed of msg.embeds) {
-    if (embed.video?.url)      return embed.video.url;
-    if (embed.image?.url)      return embed.image.url;
-    if (embed.thumbnail?.url)  return embed.thumbnail.url;
-    if (embed.url)             return embed.url;
-  }
-  const urls = msg.content?.match(/https?:\/\/\S+/g) || [];
-  for (const url of urls) {
-    if (/\.(gif|png|jpg|jpeg|webp|mp4)(\?|$)/i.test(url)) return url;
-    if (/tenor\.com|giphy\.com/i.test(url)) return url;
-  }
-  return null;
-}
 
 client.once('ready', () => {
   console.log(`✅ Bot logged in as ${client.user.tag}`);

@@ -13,7 +13,7 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
 });
 
-function extractGifFromMessage(msg) {
+export function extractGifFromMessage(msg) {
   // 1. Attachments
   const attachment = msg.attachments.first();
   if (attachment) return attachment.url;

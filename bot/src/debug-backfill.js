@@ -1,29 +1,13 @@
 import 'dotenv/config';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { parseMessage } from './parser.js';
+import { extractGifFromMessage } from './backfill.js';
 
 const CHANNEL_ID = process.env.CHANNEL_ID;
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
 });
-
-function extractGifFromMessage(msg) {
-  const attachment = msg.attachments.first();
-  if (attachment) return { url: attachment.url, source: 'attachment' };
-  for (const embed of msg.embeds) {
-    if (embed.video?.url)      return { url: embed.video.url, source: 'embed.video' };
-    if (embed.image?.url)      return { url: embed.image.url, source: 'embed.image' };
-    if (embed.thumbnail?.url)  return { url: embed.thumbnail.url, source: 'embed.thumbnail' };
-    if (embed.url)             return { url: embed.url, source: 'embed.url' };
-  }
-  const urls = msg.content?.match(/https?:\/\/\S+/g) || [];
-  for (const url of urls) {
-    if (/\.(gif|png|jpg|jpeg|webp|mp4)(\?|$)/i.test(url)) return { url, source: 'content-media' };
-    if (/tenor\.com|giphy\.com/i.test(url)) return { url, source: 'content-tenor' };
-  }
-  return null;
-}
 
 client.once('ready', async () => {
   console.log(`✅ Debug bot ready`);
