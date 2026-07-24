@@ -78,22 +78,3 @@ class VectorDatabase {
     }
 }
 
-// --- Execution Example ---
-// Instantiate the vector database
-const db = new VectorDatabase();
-
-// Populate with mock 3-dimensional embeddings (for illustration simplicity)
-db.insert("gif_cat_playing", [0.91, 0.12, 0.38]);
-db.insert("gif_dog_barking", [0.15, 0.88, 0.42]);
-
-console.log(`Database initialized. Stored items: ${db.size}`);
-
-// Scenario A: Testing a slight variation of the cat GIF (Should match)
-const queryCatVariant = [0.89, 0.14, 0.40]; 
-const resultA = db.search(queryCatVariant, 0.90);
-console.log("Query Cat:", resultA);
-
-// Scenario B: Testing a completely novel, unregistered GIF input (Should fail validation)
-const queryNovelItem = [0.50, 0.50, 0.70];
-const resultB = db.search(queryNovelItem, 0.90);
-console.log("Query Novel:", resultB);

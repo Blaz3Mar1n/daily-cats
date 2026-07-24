@@ -95,24 +95,3 @@ def gif_url_to_tensor(url, target_size=(128, 128), max_frames=32, normalize=True
         video_tensor = torch.stack(frames)
 
         return video_tensor
-
-
-# --- Example Usage ---
-if __name__ == "__main__":
-    # Example Tenor Page URL (not a direct link)
-    tenor_url = "https://tenor.com/view/cat-kitty-cute-paws-window-gif-15949102"
-
-    try:
-        print("Processing GIF...")
-        # Target shape: 32 frames, 3 color channels, 128x128 pixels
-        gif_tensor = gif_url_to_tensor(
-            tenor_url, target_size=(128, 128), max_frames=32
-        )
-
-        print("Successfully processed!")
-        print(f"Tensor Shape: {gif_tensor.shape}")  # Expected: [32, 3, 128, 128]
-        print(f"Data Type:    {gif_tensor.dtype}")
-        print(f"Device:       {gif_tensor.device}")
-
-    except Exception as e:
-        print(f"Error processing URL: {e}")

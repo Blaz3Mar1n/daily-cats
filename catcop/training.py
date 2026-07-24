@@ -84,12 +84,3 @@ def train_embedding_model(epochs=5, batch_size=8, learning_rate=1e-4):
 
     print("Training Complete!")
     return model
-
-
-# Run the training execution
-if __name__ == "__main__":
-    trained_model = train_embedding_model(epochs=3, batch_size=4)
-
-    # Save the trained weights for inference later
-    torch.save(trained_model.state_dict(), "gif_embedder.pth")
-    print("Saved model weights to gif_embedder.pth")

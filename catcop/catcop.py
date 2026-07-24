@@ -52,20 +52,3 @@ class GIFEmbeddingNetwork(nn.Module):
 
         return normalized_embeddings
 
-
-# --- Verification Pipeline ---
-if __name__ == "__main__":
-    model = GIFEmbeddingNetwork(embedding_dim=512)
-    model.eval()
-
-    # Simulate a batch of 2 GIFs, each with 32 frames, 3 color channels, 128x128 resolution
-    sample_input = torch.randn(2, 32, 3, 128, 128)
-
-    with torch.no_grad():
-        output_embeddings = model(sample_input)
-
-    print(f"Input Shape:      {sample_input.shape}")
-    print(f"Embedding Shape:  {output_embeddings.shape}")  # Target: [2, 512]
-    print(
-        f"L2 Norm check:    {torch.norm(output_embeddings[0]).item():.2f}"
-    )  # Target: 1.007
