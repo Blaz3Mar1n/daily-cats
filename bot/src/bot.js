@@ -39,6 +39,7 @@ client.on('messageCreate', async (message) => {
       pendingCats.delete(sender.id);
       if (pending.savedId) {
         await patchCatGif(pending.savedId, gifUrl);
+        //prepro
         console.log(`🖼️  Patched GIF for Day ${pending.parsed.day}: ${pending.parsed.name}`);
       }
       return;
